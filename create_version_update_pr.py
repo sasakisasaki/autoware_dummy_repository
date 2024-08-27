@@ -179,18 +179,8 @@ def create_version_update_pr(args: argparse.Namespace) -> None:
     # Get reference to the repository
     repo = git.Repo(args.parent_dir)
 
-    # Remote branches
-    branches = []
-    for ref in repo.references:
-        if isinstance(ref, git.refs.remote.RemoteReference):
-            # Remove the 'origin/' prefix
-            branch_name = ref.name.split('/', 1)[1]
-            if branch_name not in branches:
-                branches.append(branch_name)
-
-    # Local branches
-    for branch in repo.branches:
-        branches.append(branch.name)
+    # Get all the branches
+    branches = [r.remote_head for r in repo.remote().refs]
 
     for url, current_version in repository_url_semantic_version_dict.items():
         '''
