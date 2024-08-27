@@ -188,6 +188,10 @@ def create_version_update_pr(args: argparse.Namespace) -> None:
             if branch_name not in branches:
                 branches.append(branch_name)
 
+    # Local branches
+    for branch in repo.branches:
+        branches.append(branch.name)
+
     for url, current_version in repository_url_semantic_version_dict.items():
         '''
         Description:
