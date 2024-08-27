@@ -19,7 +19,7 @@ parser.add_argument("-v", "--verbose", action="count", default=0, help="Verbosit
 # Repository information
 args_repo = parser.add_argument_group("Repository information")
 args_repo.add_argument("--parent_dir", type=str, default="./", help="The parent directory of the repository")
-args_repo.add_argument("--repo_name", type=str, default="tier4/experimental_automated_tag_tracer", help="The repository name to create a PR")
+args_repo.add_argument("--repo_name", type=str, default="autowarefoundation/autoware_dummy_repository", help="The repository name to create a PR")
 args_repo.add_argument("--base_branch", type=str, default="main", help="The base branch of autoware.repos")
 args_repo.add_argument("--new_branch_prefix", type=str, default="feat/update-", help="The prefix of the new branch name")
 args_repo.add_argument("--semantic_version_pattern", type=str, default=r'(v\d+\.\d+\.\d+)', help="The pattern of semantic version")
