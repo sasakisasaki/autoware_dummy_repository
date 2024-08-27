@@ -30,5 +30,4 @@ jobs:
       - name: Run Python
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: echo $GITHUB_TOKEN
-        #run: python create_version_update_pr.py    # Uncomment after all checks
+        run: python create_version_update_pr.py
