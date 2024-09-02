@@ -172,7 +172,6 @@ def get_latest_tag(tags: list[str], current_version: str) -> Optional[str]:
         else:
             # Exclude parse failed ones such as 'tier4/universe', 'main', ... etc
             try:
-                print(f'current_version: {current_version}')
                 # If current version is a valid version, compare with the current version
                 if version.parse(tag) > version.parse(current_version):
                     latest_tag = tag
