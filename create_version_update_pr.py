@@ -2,6 +2,7 @@ import os
 import re
 import argparse
 import logging
+from typing import Optional
 
 from ruamel.yaml import YAML
 from packaging import version
@@ -88,10 +89,9 @@ class AutowareRepos:
         """
         repository_url_version_dict = self._parse_repos()
 
-        repository_url_semantic_version_dict: dict[str, str] = {
-            url: version
+        repository_url_semantic_version_dict: dict[str, Optional[str]] = {
+            url: (match.group(1) if (match := re.search(semantic_version_pattern, version)) else None)
             for url, version in repository_url_version_dict.items()
-            if re.search(semantic_version_pattern, version)
         }
         return repository_url_semantic_version_dict
 
@@ -116,7 +116,7 @@ class AutowareRepos:
 class GitHubInterface:
 
     # Pattern for GitHub repository URL
-    URL_PATTERN = r'https://github.com/([^/]+/[^/]+)\.git'
+    URL_PATTERN = r'https://github.com/([^/]+)/([^/]+?)(?:\.git)?$'
 
     def __init__(self, token: str):
         self.g = Github(token)
@@ -125,9 +125,10 @@ class GitHubInterface:
         # Get repository name from url
         match = re.search(GitHubInterface.URL_PATTERN, url)
         assert match is not None, f"URL {url} is invalid"
-        repo_name = match.group(1)
+        user_name = match.group(1)
+        repo_name = match.group(2)
 
-        return repo_name
+        return str(f'{user_name}/{repo_name}')
 
     def get_tags_by_url(self, url: str) -> list[str]:
         # Extract repository's name from URL
@@ -148,11 +149,38 @@ class GitHubInterface:
         )
 
 
-def get_latest_tag(tags: list[str], current_version: str) -> str:
-    latest_tag = current_version
+def get_latest_tag(tags: list[str], current_version: str) -> Optional[str]:
+    '''
+    Description:
+        Get the latest tag from the list of tags
+
+    Args:
+        tags (list[str]): a list of tags
+        current_version (str): the current version of the repository
+    '''
+    latest_tag = None
     for tag in tags:
-        if version.parse(tag) > version.parse(current_version):
+        # Exclude parse failed ones such as 'tier4/universe', 'main', ... etc
+        try:
+            version.parse(tag)
+        except (version.InvalidVersion, TypeError):
+            continue
+
+        # OK, it's a valid version
+        if latest_tag is None:
             latest_tag = tag
+        else:
+            # Exclude parse failed ones such as 'tier4/universe', 'main', ... etc
+            try:
+                print(f'current_version: {current_version}')
+                # If current version is a valid version, compare with the current version
+                if version.parse(tag) > version.parse(current_version):
+                    latest_tag = tag
+            except (version.InvalidVersion, TypeError):
+                # If current version is not a valid version, compare with the latest tag
+                if version.parse(tag) > version.parse(latest_tag):
+                    latest_tag = tag
+
     return latest_tag
 
 
@@ -205,79 +233,74 @@ def create_version_update_pr(args: argparse.Namespace) -> None:
         # get tags of the repository
         tags: list[str] = github_interface.get_tags_by_url(url)
 
-        if current_version in tags:
+        latest_tag: Optional[str] = get_latest_tag(tags, current_version)
 
-            latest_tag: str = get_latest_tag(tags, current_version)
+        # Skip if the expected format is not found
+        if latest_tag is None:
+            logger.debug(f"The latest tag is not found in the repository {url}. Skip for this repository.")
+            continue
 
-            # Get repository name
-            repo_name: str = github_interface.url_to_repository_name(url)
-
-            # Set branch name
-            branch_name: str = f"{args.new_branch_prefix}{repo_name}/{latest_tag}"
-
-            # Check if the remote branch already exists
-            if branch_name in branches:
-                logger.info(f"Branch '{branch_name}' already exists on the remote.")
-                continue
-
-            # First, create a branch
-            newly_created: bool = create_one_branch(repo, branch_name)
-
-            # Switch to the branch
-            repo.heads[branch_name].checkout()
-
-            try:
-                # Change version in autoware.repos
-                autoware_repos.update_repository_version(url, latest_tag)
-
-                # Add
-                repo.index.add([args.autoware_repos_file_name])
-
-                # Commit
-                commit_message = f"feat(autoware.repos): update {repo_name} to {latest_tag}"
-                repo.git.commit(m=commit_message, s=True)
-
-                # Push
-                origin = repo.remote(name='origin')
-                origin.push(branch_name)
-
-                # Switch back to base branch
-                repo.heads[args.base_branch].checkout()
-
-                github_interface.create_pull_request(
-                    repo_name = args.repo_name,
-                    title = f"feat(autoware.repos): update {repo_name} to {latest_tag}",
-                    body = f"This PR updates the version of the repository {repo_name} in autoware.repos",
-                    head = branch_name,
-                    base = args.base_branch
-                )
-            except Exception as e:
-                logger.error(f"Failed to create a PR: {e}")
-
-                # Switch back to base branch
-                repo.heads[args.base_branch].checkout()
-
-                # Clean up if the branch looks created by this script
-                if newly_created:
-                    # Delete the branch if the PR creation failed
-                    repo.delete_head(branch_name, force=True)
-                    logger.info(f"Deleted branch {branch_name}")
-
-            finally:
-
-                # Switch back to base branch
-                repo.heads[args.base_branch].checkout()
-
-                # Reset any changes
-                repo.git.reset('--hard', f'origin/{args.base_branch}')
-
-                # Clean untracked files
-                repo.git.clean('-fd')
-
-                # Restore base's autoware.repos
-                autoware_repos: AutowareRepos = AutowareRepos(autoware_repos_file_name = args.autoware_repos_file_name)
-        else:
+        # Skip if not latest
+        if latest_tag == current_version:
             logger.debug(f"Repository {url} has the latest version {current_version}. Skip for this repository.")
+            continue
+
+        # Get repository name
+        repo_name: str = github_interface.url_to_repository_name(url)
+
+        # Set branch name
+        branch_name: str = f"{args.new_branch_prefix}{repo_name}/{latest_tag}"
+
+        # Check if the remote branch already exists
+        if branch_name in branches:
+            logger.info(f"Branch '{branch_name}' already exists on the remote.")
+            continue
+
+        # First, create a branch
+        create_one_branch(repo, branch_name)
+
+        # Switch to the branch
+        repo.heads[branch_name].checkout()
+
+        # Change version in autoware.repos
+        autoware_repos.update_repository_version(url, latest_tag)
+
+        # Add
+        repo.index.add([args.autoware_repos_file_name])
+
+        # Commit
+        commit_message = f"feat(autoware.repos): update {repo_name} to {latest_tag}"
+        repo.git.commit(m=commit_message, s=True)
+
+        # Push
+        origin = repo.remote(name='origin')
+        origin.push(branch_name)
+
+        # Switch back to base branch
+        repo.heads[args.base_branch].checkout()
+
+        # Create a PR
+        github_interface.create_pull_request(
+            repo_name = args.repo_name,
+            title = f"feat(autoware.repos): update {repo_name} to {latest_tag}",
+            body = f"This PR updates the version of the repository {repo_name} in autoware.repos",
+            head = branch_name,
+            base = args.base_branch
+        )
+
+        # Switch back to base branch
+        repo.heads[args.base_branch].checkout()
+
+        # Reset any changes
+        repo.git.reset('--hard', f'origin/{args.base_branch}')
+
+        # Clean untracked files
+        repo.git.clean('-fd')
+
+        # Restore base's autoware.repos
+        autoware_repos: AutowareRepos = AutowareRepos(autoware_repos_file_name = args.autoware_repos_file_name)
+
+    # Loop end
 
 
 if __name__ == "__main__":
