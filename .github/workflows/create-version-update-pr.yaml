@@ -38,4 +38,4 @@ jobs:
       - name: Run Python
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: python create_version_update_pr.py
+        run: python src/create_prs_for_vcs_repositories_update/main.py
