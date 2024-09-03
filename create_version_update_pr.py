@@ -170,15 +170,8 @@ def get_latest_tag(tags: list[str], current_version: str) -> Optional[str]:
         if latest_tag is None:
             latest_tag = tag
         else:
-            # Exclude parse failed ones such as 'tier4/universe', 'main', ... etc
-            try:
-                # If current version is a valid version, compare with the current version
-                if version.parse(tag) > version.parse(current_version):
-                    latest_tag = tag
-            except (version.InvalidVersion, TypeError):
-                # If current version is not a valid version, compare with the latest tag
-                if version.parse(tag) > version.parse(latest_tag):
-                    latest_tag = tag
+            if version.parse(tag) > version.parse(latest_tag):
+                latest_tag = tag
 
     return latest_tag
 
@@ -236,13 +229,22 @@ def create_version_update_pr(args: argparse.Namespace) -> None:
 
         # Skip if the expected format is not found
         if latest_tag is None:
-            logger.debug(f"The latest tag is not found in the repository {url}. Skip for this repository.")
+            logger.debug(f"The latest tag with expected format is not found in the repository {url}. Skip for this repository.")
             continue
 
-        # Skip if not latest
-        if latest_tag == current_version:
-            logger.debug(f"Repository {url} has the latest version {current_version}. Skip for this repository.")
-            continue
+        # Exclude parse failed ones such as 'tier4/universe', 'main', ... etc
+        try:
+            # If current version is a valid version, compare with the current version
+            if version.parse(latest_tag) > version.parse(current_version):
+                # OK, the latest tag is newer than the current version
+                pass
+            else:
+                # The current version is the latest
+                logger.debug(f"Repository {url} has the latest version {current_version}. Skip for this repository.")
+                continue
+        except (version.InvalidVersion, TypeError):
+            # If the current version is not a valid version and the latest tag is a valid version, let's update
+            pass
 
         # Get repository name
         repo_name: str = github_interface.url_to_repository_name(url)
