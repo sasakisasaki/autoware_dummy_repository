@@ -23,7 +23,10 @@ args_repo.add_argument("--parent_dir", type=str, default="./", help="The parent 
 args_repo.add_argument("--repo_name", type=str, default="autowarefoundation/autoware_dummy_repository", help="The repository name to create a PR")
 args_repo.add_argument("--base_branch", type=str, default="main", help="The base branch of autoware.repos")
 args_repo.add_argument("--new_branch_prefix", type=str, default="feat/update-", help="The prefix of the new branch name")
-args_repo.add_argument("--semantic_version_pattern", type=str, default=r'(\d+\.\d+\.\d+)', help="The pattern of semantic version")
+args_repo.add_argument("--semantic_version_pattern",
+                       type=str,
+                       default=r'(?:^|v|-|(?<=\D))(\d+(?:\.\d+)*(?:-[a-zA-Z0-9.-]+)?(?:\+[a-zA-Z0-9.-]+)?)',
+                       help="The pattern of semantic version")
 
 # For the Autoware
 args_aw = parser.add_argument_group("Autoware")
