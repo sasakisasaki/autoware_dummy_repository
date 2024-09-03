@@ -238,6 +238,7 @@ def create_version_update_pr(args: argparse.Namespace) -> None:
         # Exclude parse failed ones such as 'tier4/universe', 'main', ... etc
         try:
             # If current version is a valid version, compare with the current version
+            logger.debug(f"url: {url}, latest_tag: {latest_tag}, current_version: {current_version}")
             if version.parse(latest_tag) > version.parse(current_version):
                 # OK, the latest tag is newer than the current version
                 pass
