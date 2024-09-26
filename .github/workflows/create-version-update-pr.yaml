@@ -18,13 +18,13 @@ jobs:
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.PRIVATE_KEY }}
 
-
       - name: Run
         uses: sasakisasaki/autoware-github-actions/create-prs-to-update-vcs-repositories@fix-regular-expression-pattern-for-semantic-versioning
         with:
           token: ${{ steps.generate-token.outputs.token }}
           repo_name: autowarefoundation/autoware_dummy_repository
           parent_dir: .
+          targets: major minor patch any
           base_branch: main
           new_branch_prefix: feat/update-
           autoware_repos_file_name: autoware.repos
