@@ -22,7 +22,7 @@ jobs:
         uses: autowarefoundation/autoware-github-actions/create-prs-to-update-vcs-repositories@v1
         with:
           token: ${{ steps.generate-token.outputs.token }}
-          repo_name: autowarefoundation/autoware
+          repo_name: autowarefoundation/autoware_dummy_repository
           parent_dir: .
           targets: major minor patch
           base_branch: main
@@ -34,7 +34,7 @@ jobs:
         uses: autowarefoundation/autoware-github-actions/create-prs-to-update-vcs-repositories@v1
         with:
           token: ${{ steps.generate-token.outputs.token }}
-          repo_name: autowarefoundation/autoware
+          repo_name: autowarefoundation/autoware_dummy_repository
           parent_dir: .
           targets: major minor patch
           base_branch: main
