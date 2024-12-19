@@ -19,7 +19,9 @@ jobs:
           private_key: ${{ secrets.PRIVATE_KEY }}
 
       - name: Create PRs to update VCS repositories for autoware.repos
-        uses: autowarefoundation/autoware-github-actions/create-prs-to-update-vcs-repositories@v1
+        # TODO: Revert this comment when the PR is merged
+        #uses: autowarefoundation/autoware-github-actions/create-prs-to-update-vcs-repositories@v1
+        uses: sasakisasaki/autoware-github-actions/create-prs-to-update-vcs-repositories@fix-bugs-in-detecting-the-latest-tags
         with:
           token: ${{ steps.generate-token.outputs.token }}
           repo_name: autowarefoundation/autoware_dummy_repository
@@ -31,7 +33,9 @@ jobs:
           verbosity: 0
 
       - name: Create PRs to update VCS repositories for simulator.repos
-        uses: autowarefoundation/autoware-github-actions/create-prs-to-update-vcs-repositories@v1
+        # TODO: Revert this comment when the PR is merged
+        #uses: autowarefoundation/autoware-github-actions/create-prs-to-update-vcs-repositories@v1
+        uses: sasakisasaki/autoware-github-actions/create-prs-to-update-vcs-repositories@fix-bugs-in-detecting-the-latest-tags
         with:
           token: ${{ steps.generate-token.outputs.token }}
           repo_name: autowarefoundation/autoware_dummy_repository
