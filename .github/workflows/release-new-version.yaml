@@ -1,3 +1,9 @@
+name: release-new-version
+
+# For testing purpose, enable only by manual trigger
+on:
+  workflow_dispatch:
+
 jobs:
   update-versions:
     runs-on: ubuntu-22.04
