@@ -2,8 +2,8 @@
 Changelog for package dummy_package_3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2025-06-02)
+------------------
 * Merge branch 'main' of github.com:autowarefoundation/autoware_dummy_repository
 * Contributors: Junya Sasaki
 
