@@ -24,7 +24,12 @@ on:
 
 jobs:
   tag-on-merge:
-    if: github.event.pull_request.merged == true
+    if: |
+      github.event.pull_request.merged == true &&
+      contains(
+        join(github.event.pull_request.labels.*.name, ','),
+        'release:bump-version'
+      )
     runs-on: ubuntu-22.04
     steps:
       - name: Generate token
