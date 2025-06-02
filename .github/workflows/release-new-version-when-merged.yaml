@@ -1,10 +1,8 @@
-name: Tag release after PR merge
+name: tag release after PR merge
 
 on:
-<<<<<<<< HEAD:.github/workflows/release-new-version-when-merged.yaml
   pull_request:
     types: [closed]
-========
   workflow_dispatch:
     inputs:
       source_branch:
@@ -23,7 +21,6 @@ on:
         description: 'Repository owner (org or user)'
         required: false
         default: 'autowarefoundation'
->>>>>>>> 06f7b874c34a6520ab3d94daaa5553084dd95d11:.github/workflows/release-new-version.yaml
 
 jobs:
   tag-on-merge:
@@ -38,17 +35,7 @@ jobs:
           private-key: ${{ secrets.PRIVATE_KEY }}
 
       - name: Run
-<<<<<<<< HEAD:.github/workflows/release-new-version-when-merged.yaml
         uses: sasakisasaki/autoware-github-actions/release-new-tag-when-merged@testing/release-new-version
         with:
           github_token: ${{ steps.generate-token.outputs.token }}
           commit_sha: ${{ github.event.pull_request.merge_commit_sha }}
-========
-        uses: sasakisasaki/autoware-github-actions/bump-new-version@testing/release-new-version
-        with:
-          github_token: ${{ steps.generate-token.outputs.token }}
-          source_branch: ${{ github.event.inputs.source_branch }}
-          target_branch: ${{ github.event.inputs.target_branch }}
-          bump_version: ${{ github.event.inputs.bump_version }}
-          repository_owner: ${{ github.event.inputs.repository_owner }}
->>>>>>>> 06f7b874c34a6520ab3d94daaa5553084dd95d11:.github/workflows/release-new-version.yaml
