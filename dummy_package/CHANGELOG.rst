@@ -2,6 +2,9 @@
 Changelog for package dummy_package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.0.2 (2025-06-03)
 ------------------
 * fix: to be consistent version in all package.xml(s)
