@@ -38,7 +38,7 @@ jobs:
 
       - name: Run
         #uses: autowarefoundation/autoware-github-actions/bump-new-version@v1
-        uses: sasakisasaki/autoware-github-actions/bump-new-version@fix-bugs-in-version-control-workflows-2025-06-03
+        uses: sasakisasaki/autoware-github-actions/bump-new-version@feat-handle-merge-conflict-in-release-tag
         with:
           github_token: ${{ steps.generate-token.outputs.token }}
           source_branch: ${{ github.event.inputs.source_branch }}
